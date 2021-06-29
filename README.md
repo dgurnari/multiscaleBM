@@ -5,7 +5,7 @@ Example of the multiscale BallMapper construction.
 Use `multiscale_BM_example.R` to create and save the BM.
 MSBM is saved to disk as three csv files:
 
-edges - matrix of a size nr_of_landamrks^2. The value at (i,j) tells at which value of epsilon the the landmark i should be connected with an edge with a landmark j.
+edges - matrix of a size nr_of_landmarks^2. The value at (i,j) tells at which value of epsilon the the landmark i should be connected with an edge with a landmark j.
 
 distance_of_points_in_order_from_landmarks -- vector of vector (size: number of points times number of landmarks). The vector at i-th
 position tells the distances of points from the i-th landmark. All vectors are in ascending ordered.
