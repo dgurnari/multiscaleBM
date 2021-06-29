@@ -61,7 +61,7 @@ def plot_multiscale_BM(d_matrix,
                        distance_from_landmarks,
                        color_of_landmarks,
                        my_palette = cm.get_cmap(name='jet'),
-                       exponential_scaling=False):
+                       log_scaling=False):
     
     color_matrix = create_color_matrix(color_of_landmarks, my_palette)
     
@@ -116,7 +116,7 @@ def plot_multiscale_BM(d_matrix,
                 counter++;
             }
 
-            if (exponential_scaling) {
+            if (log_scaling) {
                 graph_renderer.node_renderer.data_source.data['size'][i] = Math.max(10,Math.min(Math.log10(counter)*node_data['size_scale'][i], 100));
 
             }
@@ -138,7 +138,7 @@ def plot_multiscale_BM(d_matrix,
 
 
     callback = CustomJS(args = dict(graph_renderer = graph_renderer,
-                                    exponential_scaling = exponential_scaling),
+                                    log_scaling = log_scaling),
                         code = code)
     slider = Slider(start=min_epsilon, end=max_epsilon, step=0.1, value=min_epsilon,
                    title='epsilon',
@@ -173,7 +173,7 @@ def plot_sampled_multiscale_BM(d_matrix,
                                color_of_landmarks,
                                num_of_points = 100,
                                my_palette = cm.get_cmap(name='jet'),
-                               exponential_scaling=False):
+                               log_scaling=False):
     
     sampled_size_matrix, sampled_color_matrix = sample_size_and_color_matrix(distance_from_landmarks, 
                                                                              color_of_landmarks,
@@ -229,7 +229,7 @@ def plot_sampled_multiscale_BM(d_matrix,
                 counter++;
             }
 
-            if (exponential_scaling) {
+            if (log_scaling) {
                 graph_renderer.node_renderer.data_source.data['size'][i] = Math.max(10,Math.min(Math.log10(node_data['size_list'][i][counter])*node_data['size_scale'][i], max_size));
             }
             else {
@@ -249,7 +249,7 @@ def plot_sampled_multiscale_BM(d_matrix,
 
     """
     callback = CustomJS(args = dict(graph_renderer = graph_renderer,
-                                    exponential_scaling = True,
+                                    log_scaling = True,
                                     max_size = 100),
                         code = code)
     slider = Slider(start=min_epsilon, end=max_epsilon, step=0.1, value=min_epsilon,
@@ -291,7 +291,7 @@ def save_graph_to_png(epsilon_list, driver,
                       add_colorbar = False,
                       num_of_points = 1000,
                       my_palette = cm.get_cmap(name='jet'),
-                      exponential_scaling=False):
+                      log_scaling=False):
     
     sampled_size_matrix, sampled_color_matrix = sample_size_and_color_matrix(distance_from_landmarks, 
                                                                              color_of_landmarks,
@@ -347,7 +347,7 @@ def save_graph_to_png(epsilon_list, driver,
         for i, node in enumerate(G.nodes):
             nearest_index = np.where(G.nodes[node]['filtration_list']<=current_epsilon)[0][-1]
 
-            if exponential_scaling:
+            if log_scaling:
                 graph_renderer.node_renderer.data_source.data['size'][i] = max(NODE_SIZE, 
                                                                        min(np.log10(G.nodes[node]['size_list'][nearest_index])*G.nodes[node]['size_scale'], 100))
             else:
