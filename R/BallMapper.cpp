@@ -1,11 +1,17 @@
-#include <Rcpp.h>
+//#define rcpp_code
+
+#ifdef rcpp_code
+  #include <Rcpp.h>
+  using namespace Rcpp;
+#endif
+using namespace std;
+
 #include <vector>
 #include <iostream>
 #include <cmath>
-using namespace Rcpp;
-using namespace std;
 
-/*
+
+/**
 //For standard, not symmetric data:
 library(Rcpp)
 sourceCpp('BallMapper.cpp')
@@ -21,8 +27,9 @@ BallMapperCpp <- function( points , values , epsilon )
 }#BallMapperCpp
 
 BallMapperCpp( pts,values,0.3 )
-*/
+**/
 
+#ifdef rcpp_code
 inline double compute_distance
   ( const std::vector< NumericVector >& pts , size_t f , size_t s ,  double p = 2 )
 {
@@ -33,6 +40,7 @@ inline double compute_distance
   }
   return pow(result,1/p);
 }//Euclidean_distance
+#endif
 //
 //
 //
@@ -42,6 +50,7 @@ inline double compute_distance
 //
 //
 //
+#ifdef rcpp_code
 void compute_landmarks
 (
  const std::vector< NumericVector >& points ,
@@ -55,7 +64,11 @@ void compute_landmarks
   int number_of_landmark = -1;
   while ( first_not_covered_point < number_of_points )
   {
-     if (dbg) Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
+     if (dbg)
+     {
+        Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
+     }
+     
      landmarks.push_back( first_not_covered_point+1 );//!!!
      ++number_of_landmark;
      //check what is covered by points_vec[first_not_covered_point]:
@@ -73,6 +86,7 @@ void compute_landmarks
      }
   }
 }
+#endif
 //
 //
 //
@@ -82,6 +96,7 @@ void compute_landmarks
 //
 //
 //
+#ifdef rcpp_code
 void compute_landmarks_symmetric_point_clouds
 (
  const std::vector< NumericVector >& points ,
@@ -96,7 +111,10 @@ void compute_landmarks_symmetric_point_clouds
   int number_of_landmark = -1;
   while ( first_not_covered_point < number_of_points )
   {
-     if (dbg) Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
+      if (dbg)
+      {
+         Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
+      }
 
 
      //instead of putting a single point to the landmarks list, we will put there the
@@ -135,7 +153,7 @@ void compute_landmarks_symmetric_point_clouds
       coverage[i].erase( std::unique( coverage[i].begin() , coverage[i].end() ) , coverage[i].end() );
   }
 }
-
+#endif
 
 
 
@@ -149,12 +167,13 @@ void compute_landmarks_symmetric_point_clouds
 
 
 //internal procedure
+#ifdef rcpp_code
 void internal_procedure_fill_points_covered_by_landmarks
-( 
-NumericVector& numer_of_covered_points , 
-std::vector< std::vector< int > >& points_covered_by_landmarks , 
-const std::vector< size_t >& landmarks , 
-const std::vector< std::vector<size_t> >& coverage 
+(
+NumericVector& numer_of_covered_points ,
+std::vector< std::vector< int > >& points_covered_by_landmarks ,
+const std::vector< size_t >& landmarks ,
+const std::vector< std::vector<size_t> >& coverage
 )
 {
 	bool dbg = false;
@@ -183,8 +202,14 @@ const std::vector< std::vector<size_t> >& coverage
 			points_covered_by_landmarks[ coverage[i][j]-1 ].push_back( i+1 );
 		}
 	}
-	if (dbg) Rcerr << "points_covered_by_landmarks.size() : " << points_covered_by_landmarks.size() << endl;
+	
+	if (dbg)
+	{
+      Rcerr << "points_covered_by_landmarks.size() : " << points_covered_by_landmarks.size() << endl;
+	}
+	
 }//internal_procedure_fill_points_covered_by_landmarks
+#endif
 //
 //
 //
@@ -194,11 +219,12 @@ const std::vector< std::vector<size_t> >& coverage
 //
 //
 //
+#ifdef rcpp_code
 void
 internal_procedure_fill_coloring
 (
-std::vector< double >& coloring , 
-const std::vector< std::vector< int > >& points_covered_by_landmarks , 
+std::vector< double >& coloring ,
+const std::vector< std::vector< int > >& points_covered_by_landmarks ,
 NumericVector& values
 )
 {
@@ -217,13 +243,14 @@ NumericVector& values
 
 	if (dbg)
 	{
-		Rcerr << "Here is the coloring : \n";
-		for ( size_t i = 0 ; i != coloring.size() ; ++i )
-		{
-			Rcerr << coloring[i] << " , ";
-		}
+    	  Rcerr << "Here is the coloring : \n";
+    	  for ( size_t i = 0 ; i != coloring.size() ; ++i )
+    	  {
+    	    Rcerr << coloring[i] << " , ";
+    	  }
 	}
 }//internal_procedure_fill_coloring
+#endif
 //
 //
 //
@@ -233,6 +260,7 @@ NumericVector& values
 //
 //
 //
+#ifdef rcpp_code
 void
 internal_procedure_build_graph
 (
@@ -251,8 +279,10 @@ const std::vector< std::vector<size_t> > coverage
     graph_incidence_matrix[i] = std::vector<int>( i );
   }
 
-
-  if (dbg) Rcerr << "coverage.size() : " << coverage.size() << endl;
+  if (dbg)
+  {
+     Rcerr << "coverage.size() : " << coverage.size() << endl;
+   }
 
   for ( size_t i = 0 ; i < coverage.size() ; ++i )
   {
@@ -278,7 +308,12 @@ const std::vector< std::vector<size_t> > coverage
        if ( graph_incidence_matrix[i][j] != 0 )++number_of_edges;
     }
   }
-  if (dbg)Rcerr << "Number of edges in the graph : " << number_of_edges << endl;
+  
+  if (dbg)
+  {
+      Rcerr << "Number of edges in the graph : " << number_of_edges << endl;
+  }
+  
 
   from = NumericVector(number_of_edges);
   to = NumericVector(number_of_edges);
@@ -300,6 +335,7 @@ const std::vector< std::vector<size_t> > coverage
     }
   }
 }//internal_procedure_build_graph
+#endif
 //
 //
 //
@@ -309,8 +345,8 @@ const std::vector< std::vector<size_t> > coverage
 //
 //
 //
-/*
 //For standard, not symmetric data:
+/**
 library(Rcpp)
 library(BallMapper)
 
@@ -324,11 +360,12 @@ BallMapperCpp <- function( points , values , epsilon )
   output <- BallMapperCppInterface( points , values , epsilon )
   colnames(output$vertices) = c('id','size')
   return_list <- output
-}#BallMapperCpp
+}BallMapperCpp
 
 bm <- BallMapperCpp( pts,values,0.4 )
 BallMapper::ColorIgraphPlot(bm)
-*/
+**/
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values_df , double epsilon  )
 {
@@ -345,10 +382,7 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
     points[i] = points_df[i];
   }
   int number_of_points = points[0].size();
-  if (dbg) Rcerr << "Number of points : " << number_of_points << endl;
-
   NumericVector values = values_df[0];
-  if (dbg) Rcerr << "values.size() : " << values.size() << endl;
 
   std::vector< std::vector<size_t> > coverage( number_of_points );
   std::vector< size_t > landmarks;
@@ -357,16 +391,21 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
   //here we outsource computations of landmark points:
   compute_landmarks( points , coverage, landmarks , epsilon , number_of_points );
 
-  if (dbg) Rcerr << "landmarks.size() : " << landmarks.size() << endl;
-  if (dbg) Rcerr << "coverage.size() : " << coverage.size() << endl;
 
   if (dbg)
   {
-    Rcerr << "Here are the landmarks: \n";
-    for ( size_t i = 0 ; i != landmarks.size() ; ++i )
-    {
-      Rcerr << landmarks[i] << " , ";
-    }
+    
+      Rcerr << "Number of points : " << number_of_points << endl;
+      Rcerr << "values.size() : " << values.size() << endl;
+      
+      Rcerr << "landmarks.size() : " << landmarks.size() << endl;
+      Rcerr << "coverage.size() : " << coverage.size() << endl;
+      
+      Rcerr << "Here are the landmarks: \n";
+      for ( size_t i = 0 ; i != landmarks.size() ; ++i )
+      {
+        Rcerr << landmarks[i] << " , ";
+      }
   }
 
 //change1
@@ -377,9 +416,9 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
   //now let us deal with the coloring of the vertices:
   //change2
   std::vector< double > coloring;
-  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values ); 
- 
- 
+  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values );
+
+
   //Now let us create the graph and record the strength of each edge. To measure this, we will create the incidence matrix of the graph.
   //change3
   std::vector< std::vector< int > > graph_incidence_matrix;
@@ -387,7 +426,7 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
   NumericVector to;
   NumericVector strength_of_edges;
   internal_procedure_build_graph( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
-  
+
   NumericVector verts( landmarks.size() );
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )
   {
@@ -406,7 +445,7 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
   //ret["numer_of_covered_points"] = numer_of_covered_points;
   return ret;
 }
-
+#endif
 //
 //
 //
@@ -468,7 +507,12 @@ void compute_landmarks_not_transposed_pts_group_action
 
   if ( dbg )
   {
-     Rcerr << "orbit.size() : " << orbit.size() << std::endl;
+    #ifdef rcpp_code
+       Rcerr << "orbit.size() : " << orbit.size() << std::endl;
+    #endif
+    #ifndef rcpp_code
+       cerr << "orbit.size() : " << orbit.size() << std::endl;
+    #endif
   }
 
   while ( true )
@@ -478,12 +522,30 @@ void compute_landmarks_not_transposed_pts_group_action
           ++current_point;
       }
 
-      if ( dbg )Rcerr << "Current point : " << current_point << std::endl;
+      
+      if ( dbg )
+      {
+          #ifdef rcpp_code
+                  Rcerr <<  "Current point : " << current_point << std::endl;
+          #endif
+          #ifndef rcpp_code
+                  cerr <<  "Current point : " << current_point << std::endl;
+          #endif
+      }
 
       if ( current_point == points.size() )break;
       for ( size_t i = 0 ; i != orbit[ current_point ].size() ; ++i )
       {
-           if ( dbg )Rcerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+           if ( dbg )
+           {
+                #ifdef rcpp_code
+                      Rcerr <<   "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                #endif
+                #ifndef rcpp_code
+                      cerr <<  "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                #endif
+           }
+           
 
            landmarks.push_back( orbit[ current_point ][i]-1 );
            for ( size_t j = 0 ; j != points.size() ; ++j )
@@ -495,7 +557,6 @@ void compute_landmarks_not_transposed_pts_group_action
            }
            current_landmark++;
       }
-      if ( dbg )Rcerr << "Out of the internal while loop. \n";
   }
 }
 //
@@ -535,6 +596,7 @@ void compute_landmarks_not_transposed_pts( std::vector< std::vector<size_t> >& c
   }
 }
 
+#ifdef rcpp_code
 std::vector< std::vector<double> > transpose_points_from_R( const DataFrame& points_df )
 {
     std::vector< NumericVector > points_transposed( points_df.size() );
@@ -557,8 +619,10 @@ std::vector< std::vector<double> > transpose_points_from_R( const DataFrame& poi
     }
     return points;
 }
+#endif
 
 
+#ifdef rcpp_code
 std::vector< std::vector<int> > transpose_points_from_R_int_version( const DataFrame& points_df )
 {
     std::vector< NumericVector > points_transposed( points_df.size() );
@@ -581,9 +645,10 @@ std::vector< std::vector<int> > transpose_points_from_R_int_version( const DataF
     }
     return points;
 }
+#endif
 
 
-/*
+/**
 library(Rcpp)
 library(BallMapper)
 
@@ -601,7 +666,8 @@ BallMapperCpp <- function( points , values , epsilon )
 
 bm <- BallMapperCpp( pts,values,0.4 )
 BallMapper::ColorIgraphPlot(bm)
-*/
+**/
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List SimplifiedBallMapperCppInterface( const DataFrame& points_df , const DataFrame& values_df , double epsilon  )
 {
@@ -650,7 +716,7 @@ List SimplifiedBallMapperCppInterface( const DataFrame& points_df , const DataFr
 
   //now let us deal with the coloring of the vertices:
   std::vector< double > coloring;
-  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values ); 
+  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values );
 
   std::vector< std::vector< int > > graph_incidence_matrix;
   NumericVector from;
@@ -673,19 +739,35 @@ List SimplifiedBallMapperCppInterface( const DataFrame& points_df , const DataFr
   ret["coloring"] = coloring;
   ret["coverage"] = coverage;
   return ret;
-
-return 1;
 }
+#endif
 
 
 
-/*
-To get the landmark points in R:
-aa <- compute_landmark_indices(pts,0.4)
-aa = t(aa)
-lands <- pts[aa,]
-and then they can be used to call the next subroutine:
-*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//To get the landmark points in R:
+//aa <- compute_landmark_indices(pts,0.4)
+//aa = t(aa)
+//lands <- pts[aa,]
+//and then they can be used to call the next subroutine:
+#ifdef rcpp_code
 //[[Rcpp::export]]
 NumericVector compute_landmark_indices
 (
@@ -725,10 +807,11 @@ NumericVector compute_landmark_indices
   }
   return landmarks;
 }
+#endif
 
-/*
-new_epsilon <- computeDistanceBetweenPtClouds(pts,lands)
-*/
+
+//new_epsilon <- computeDistanceBetweenPtClouds(pts,lands)
+#ifdef rcpp_code
 // [[Rcpp::export]]
 double computeDistanceBetweenPtClouds
 (
@@ -769,9 +852,9 @@ double computeDistanceBetweenPtClouds
   //}
   return max_distance;
 }//computeDistanceBetweenPtClouds
+#endif
 
-
-/*
+/**
 library(Rcpp)
 sourceCpp('BallMapper.cpp')
 
@@ -792,8 +875,8 @@ BallMapperLandCpp <- function( points , landmarks , values , epsilon )
 }#BallMapperLandCpp
 
 BallMapperLandCpp( pts,lands,values,0.4 )
-*/
-/*
+**/
+/**
 library(Rcpp)
 library(BallMapper)
 
@@ -814,7 +897,8 @@ BallMapperCpp <- function( points , values , epsilon )
 
 bm <- BallMapperCpp( pts,values,0.4 )
 BallMapper::ColorIgraphPlot(bm)
-*/
+**/
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List SimplifiedBallMapperCppInterfaceBasedOnLands
 (
@@ -853,7 +937,7 @@ List SimplifiedBallMapperCppInterfaceBasedOnLands
           }
       }
   }
-  
+
 
   //Now we will compute points_covered_by_landmarks. Firstly let us initialize all the structures:
   NumericVector numer_of_covered_points( landmarks.size() , 2 );//We initialize it to 2, as othervise we get very unbalanced balls sizes.
@@ -886,7 +970,7 @@ List SimplifiedBallMapperCppInterfaceBasedOnLands
 
 
   std::vector< double > coloring;
-  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values ); 
+  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values );
 
   //Now let us create the graph and record the strength of each edge. To measure this, we will create the incidence matrix of the graph.
   std::vector< std::vector< int > > graph_incidence_matrix( landmarks.size() );
@@ -944,7 +1028,7 @@ List SimplifiedBallMapperCppInterfaceBasedOnLands
       }
     }
   }
-  
+
 
   NumericVector verts( landmarks.size() );
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )
@@ -964,6 +1048,7 @@ List SimplifiedBallMapperCppInterfaceBasedOnLands
 
 return 1;
 }//SimplifiedBallMapperCppInterfaceBasedOnLands
+#endif
 
 
 
@@ -971,8 +1056,7 @@ return 1;
 
 
 
-
-/*
+/**
 //For data with some group action:
 
 library(Rcpp)
@@ -992,8 +1076,8 @@ BallMapperGroupActionCpp <- function( points , values , epsilon , orbit )
 
 bm <- BallMapperGroupActionCpp( points , values , epsilon , orbit )
 BallMapper::ColorIgraphPlot(bm)
-*/
-
+**/
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List SimplifiedBallMapperCppInterfaceGroupAction( const DataFrame& points_df , const DataFrame& values_df , double epsilon , const DataFrame& orbit_ )
 {
@@ -1047,7 +1131,7 @@ List SimplifiedBallMapperCppInterfaceGroupAction( const DataFrame& points_df , c
   internal_procedure_fill_points_covered_by_landmarks( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
 
   std::vector< double > coloring;
-  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values ); 
+  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values );
 
   std::vector< std::vector< int > > graph_incidence_matrix;
   NumericVector from;
@@ -1074,7 +1158,7 @@ List SimplifiedBallMapperCppInterfaceGroupAction( const DataFrame& points_df , c
 
 return 1;
 }
-
+#endif
 
 
 
@@ -1157,6 +1241,7 @@ return 1;
 
 
 //SPARSE REPRESENTATION CODE BELOW:
+#ifdef rcpp_code
 std::vector< std::vector< std::pair<unsigned , double > > > transpose_points_from_R_to_sparse_vector( const DataFrame& points_df )
 {
     std::vector< NumericVector > points_transposed( points_df.size() );
@@ -1175,7 +1260,7 @@ std::vector< std::vector< std::pair<unsigned , double > > > transpose_points_fro
         for ( size_t j = 0 ; j != dim_of_points ; ++j )
         {
         	if ( points_transposed[j][i] != 0 )
-        	{        
+        	{
       		   pt.push_back( std::make_pair( j , points_transposed[j][i] ) );
       		}
         }
@@ -1183,7 +1268,7 @@ std::vector< std::vector< std::pair<unsigned , double > > > transpose_points_fro
     }
     return points;
 }
-
+#endif
 
 
 inline double compute_distance_standard_points_sparse_points
@@ -1192,14 +1277,14 @@ inline double compute_distance_standard_points_sparse_points
   double result = 0;
   size_t pt1_it = 0;
   size_t pt2_it = 0;
-  
+
   while ( ( pt1_it < pt1.size() ) && ( pt2_it < pt2.size() ) )
   {
   	if ( pt1[pt1_it].first < pt2[pt2_it].first )
   	{
 	        //we move pt1:
 	        result += pow( ( pt1[pt1_it].second ) , p );
-		++pt1_it;  	  		  		
+		++pt1_it;
 	}
 	else
 	{
@@ -1207,18 +1292,18 @@ inline double compute_distance_standard_points_sparse_points
 		{
 			//we move pt1:
 	        	result += pow( ( pt2[pt2_it].second ) , p );
-			++pt2_it;  	
+			++pt2_it;
 		}
 		else
 		{
 			//in this case pt1[pt1_it].first == pt2[pt2_it]
-			result += pow( ( pt1[pt1_it].second - pt2[pt2_it].second ) , p );			
+			result += pow( ( pt1[pt1_it].second - pt2[pt2_it].second ) , p );
 			++pt1_it;
 			++pt2_it;
 		}
 	}
   }
-  
+
   //if there is anything left, we count it here:
   while ( pt1_it < pt1.size() )
   {
@@ -1230,7 +1315,7 @@ inline double compute_distance_standard_points_sparse_points
 	result += pow( ( pt2[pt2_it].second ) , p );
 	pt2_it++;
   }
-  
+
   return pow(result,1/p);
 }//compute_distance_standard_points_sparse_points
 
@@ -1252,7 +1337,12 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
 
   if ( dbg )
   {
-     Rcerr << "orbit.size() : " << orbit.size() << std::endl;
+    #ifdef rcpp_code
+        Rcerr << "orbit.size() : " << orbit.size() << std::endl;
+    #endif
+    #ifndef rcpp_code
+        cerr << "orbit.size() : " << orbit.size() << std::endl;
+    #endif
   }
 
   while ( true )
@@ -1262,14 +1352,30 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
           ++current_point;
       }
 
-      if ( dbg )Rcerr << "Current point : " << current_point << std::endl;
+      if ( dbg )
+      {
+          #ifdef rcpp_code
+                Rcerr << "Current point : " << current_point << std::endl;
+          #endif
+          #ifndef rcpp_code
+                cerr << "Current point : " << current_point << std::endl;
+          #endif
+      }
 
       if ( current_point == points.size() )break;
       for ( size_t i = 0 ; i != orbit[ current_point ].size() ; ++i )
       {
-           if ( dbg )Rcerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+           if ( dbg )
+           {
+                #ifdef rcpp_code
+                      Rcerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                #endif
+                #ifndef rcpp_code
+                      cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                #endif
+           }
 
-  
+
            landmarks.push_back( orbit[ current_point ][i]-1 );
            for ( size_t j = 0 ; j != points.size() ; ++j )
            {
@@ -1280,7 +1386,16 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
            }
            current_landmark++;
       }
-      if ( dbg )Rcerr << "Out of the internal while loop. \n";
+      
+      if ( dbg )
+      {
+          #ifdef rcpp_code
+                  Rcerr << "Out of the internal while loop. \n";
+          #endif
+          #ifndef rcpp_code
+                  cerr << "Out of the internal while loop. \n";
+          #endif
+      }
   }
 }
 
@@ -1288,7 +1403,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
 
 
 
-/*
+/**
 //For data with some group action AND SPARSE REPRESENTATION:
 
 library(Rcpp)
@@ -1308,8 +1423,8 @@ BallMapperGroupActionCpp <- function( points , values , epsilon , orbit )
 
 bm <- BallMapperGroupActionCpp( points , values , epsilon , orbit )
 BallMapper::ColorIgraphPlot(bm)
-*/
-
+**/
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentation( const DataFrame& points_df , const DataFrame& values_df , double epsilon , const DataFrame& orbit_ )
 {
@@ -1325,7 +1440,7 @@ List SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentation( const D
   //First we need to store them as vector of NumericVectorS:
 
   std::vector< std::vector< std::pair<unsigned,double> > > points = transpose_points_from_R_to_sparse_vector( points_df );
-  
+
 //  Rcerr << "points[0].size()  : " << points[0].size() << endl;
 
   int number_of_points = points.size();
@@ -1365,7 +1480,7 @@ List SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentation( const D
   internal_procedure_fill_points_covered_by_landmarks( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
 
   std::vector< double > coloring;
-  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values ); 
+  internal_procedure_fill_coloring( coloring , points_covered_by_landmarks , values );
 
   std::vector< std::vector< int > > graph_incidence_matrix;
   NumericVector from;
@@ -1392,36 +1507,36 @@ List SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentation( const D
 
 return 1;
 }
+#endif
 
 
 
 
 
-
-/*
+/**
  library(Rcpp)
  sourceCpp('BallMapper.cpp')
- 
+
  //pts <- as.data.frame( read.csv('points.csv',header=F) )
  pts <- rbind( c(0,0), c(1,0), c(10,0), c(12,0), c(30,0), c(33,0) )
  values = as.data.frame( c(1,2,3,4,5,6) )
- //identity orbit, each element is a singleton. 
- orbit = as.data.frame( c(1,2,3,4,5,6) )   
- 
+ //identity orbit, each element is a singleton.
+ orbit = as.data.frame( c(1,2,3,4,5,6) )
+
  MultiScaleBallMapperGroupActionCpp <- function( points , values , epsilon , orbit )
  {
     output <- SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentation( points , values , epsilon , orbit )
     return_list <- output
  }#BallMapperCpp
- 
+
  epsilon = 1
  bm <- MultiScaleBallMapperGroupActionCpp( pts , values , epsilon , orbit )
  BallMapper::ColorIgraphPlot(bm)
- 
-*/
+**/
 //This is a version for multiscale ball mapper. The idea is as follows; we select a collection of landmarks on
-//some resolution level espilon. We then let the user to manipulate the epsilon to see how the set looks at 
-//different resolution levels. 
+//some resolution level espilon. We then let the user to manipulate the epsilon to see how the set looks at
+//different resolution levels.
+#ifdef rcpp_code
 // [[Rcpp::export]]
 List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentation( const DataFrame& points_df , const DataFrame& values_df , double epsilon , const DataFrame& orbit_ )
 {
@@ -1437,7 +1552,7 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
   //First we need to store them as vector of NumericVectorS:
 
   std::vector< std::vector< std::pair<unsigned,double> > > points = transpose_points_from_R_to_sparse_vector( points_df );
-  
+
 //  Rcerr << "points[0].size()  : " << points[0].size() << endl;
 
   int number_of_points = points.size();
@@ -1462,13 +1577,13 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
 
   if (dbg) Rcerr << "landmarks.size() : " << landmarks.size() << endl;
   //in this case, coverage is not useful, we will need to re-compute it here;
-  
+
 
   //this is a symetric matrix of a size = number of landmarks. At a (i,j)
-  //position of this 
+  //position of this
   std::vector< std::vector< double > > graph_incidence_matrix( landmarks.size() );
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )graph_incidence_matrix[i] = std::vector< double >( landmarks.size() );
-  
+
   //now for every landmark:
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )
   {
@@ -1488,15 +1603,15 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
 		  graph_incidence_matrix[i][j] = graph_incidence_matrix[j][i] = max_distance;
 	  }
   }
-  
+
   //now, for every point we need to points_in_order_from_landmarkscompute how the neigh of points evolve with radius as well as how the coloration is evolving;
   //for every landmark:
   std::vector< std::vector< size_t > > ( landmarks.size() );
   std::vector< std::vector< size_t > > points_in_order_from_landmarks( landmarks.size() );
   std::vector< std::vector< double > > distance_of_points_in_order_from_landmarks( landmarks.size() );
   std::vector< std::vector< double > > coloration_in_order_from_landmarks( landmarks.size() );
-  
-  
+
+
   std::vector< std::vector< std::pair<  double , size_t > > > distance_from_lands_to_points( landmarks.size() );
   //std::vector< std::vector< std::pair< double, double > > > radius_coloration_for_all_landmarks( landmarks.size() );
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )
@@ -1518,8 +1633,8 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
 	    distance_point_array_double_component[aa] = distance_point_array[aa].first;
 	    distance_point_array_size_t_component[aa] = distance_point_array[aa].second;
 	  }
-	  
-	  //now we should check how the coloration is evolving as a function of distance from this landmark. 
+
+	  //now we should check how the coloration is evolving as a function of distance from this landmark.
 	  std::vector< double > radius_colororation_for_this_landmark( distance_point_array.size() );
 	  double averaged = 0;
 	  for ( size_t k = 0 ; k != distance_point_array.size() ; ++k )
@@ -1533,7 +1648,7 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
 	  distance_of_points_in_order_from_landmarks[i] = distance_point_array_double_component;
 	  coloration_in_order_from_landmarks[i] = radius_colororation_for_this_landmark;
   }
-  
+
 
   NumericVector verts( landmarks.size() );
   for ( size_t i = 0 ; i != landmarks.size() ; ++i )
@@ -1550,6 +1665,14 @@ List SimplifiedMultiScaleBallMapperCppInterfaceGroupActionAndSparseRepresentatio
   ret["coloration_in_order_from_landmarks"] = coloration_in_order_from_landmarks;
   return ret;
 }
+#endif
 
 
 
+#ifndef Rcpp
+int main()
+{
+  return 0;
+}
+
+#endif
