@@ -3,8 +3,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-from scipy.spatial import distance_matrix
-
 from bokeh.io import show, output_file, export_png
 from bokeh.models import (Plot, Range1d, MultiLine, Circle, TapTool, OpenURL, HoverTool, 
                           CustomJS, Slider, Column, StaticLayoutProvider, TapTool, 

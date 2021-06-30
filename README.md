@@ -14,4 +14,5 @@ coloration_in_order_from_landmarks -- as above, the vector tells how the coloura
 
 
 Use the `multiscale_BM_PLOT.ipynb` notebook to plot the graphs.
-Requires Bokeh https://bokeh.org/
+install the required python packages using  
+`conda install -c conda-forge --file requirements.txt`
