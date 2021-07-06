@@ -4,14 +4,14 @@
   #include <Rcpp.h>
   using namespace Rcpp;
 #endif
-using namespace std;
-
 #include <vector>
+#include <map>
 #include <iostream>
 #include <cmath>
 #include <tuple>
 #include <algorithm>
 
+using namespace std;
 
 /**
 //For standard, not symmetric data:
@@ -373,7 +373,8 @@ const std::vector< std::vector<size_t> > coverage
 
 
 
-std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> , std::vector< int > >
+//std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> , std::vector< int > >
+std::tuple< std::map< int , std::vector< int > > , std::map< int , int > , std::vector<int> , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
 BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon )
 {
 	int number_of_points = points.size();
@@ -404,8 +405,21 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 	std::vector<int> to;
 	std::vector<int> strength_of_edges;
 	internal_procedure_build_graph< std::vector<int> >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
-
-	return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges , numer_of_covered_points );
+	
+	std::map< int , std::vector< int > > ret_vertices;	
+	for (size_t i = 0; i != numer_of_covered_points.size() ; ++i)
+	{
+		ret_vertices[i+1] = ret_vertices[i];
+	}
+	
+	std::map< int , int > ret_edges;
+	for ( size_t i = 0 ; i != from.size() ; ++i )
+	{
+		ret_edges[ from[i] ] = to[i];
+	}
+ 
+	//return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges , numer_of_covered_points );
+	return std::make_tuple( ret_vertices , ret_edges , strength_of_edges , points_covered_by_landmarks , landmarks , coloring , coverage );
 
 }//BallMapperCppInterfacePython
 
