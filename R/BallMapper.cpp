@@ -1,4 +1,4 @@
-#define rcpp_code
+// #define rcpp_code
 
 #ifdef rcpp_code
   #include <Rcpp.h>
@@ -38,7 +38,7 @@ inline double compute_distance
   double result = 0;
   for ( size_t i = 0 ; i != pts.size() ; ++i )
   {
-     result += pow( ( pts[i][f]-pts[i][s] ) , p );
+     result += pow( ( pts[f][i]-pts[f][i] ) , p );
   }
   return pow(result,1/p);
 }//Euclidean_distance
@@ -67,14 +67,9 @@ void compute_landmarks
   {
      if (dbg)
      {
-		#ifdef rcpp_code 
-			Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
-		#endif
-		#ifndef rcpp_code	
-			cerr << "first_not_covered_point : " << first_not_covered_point << endl;
-		#endif
+			std::cout << "first_not_covered_point : " << first_not_covered_point << endl;
      }
-     
+
      landmarks.push_back( first_not_covered_point+1 );//!!!
      ++number_of_landmark;
      //check what is covered by points_vec[first_not_covered_point]:
@@ -118,10 +113,10 @@ void compute_landmarks_symmetric_point_clouds
   {
       if (dbg)
       {
-		 #ifdef rcpp_code 
+		 #ifdef rcpp_code
 			Rcerr << "first_not_covered_point : " << first_not_covered_point << endl;
 		 #endif
-		 #ifndef rcpp_code 
+		 #ifndef rcpp_code
 			cerr << "first_not_covered_point : " << first_not_covered_point << endl;
 		 #endif
       }
@@ -187,7 +182,7 @@ const std::vector< std::vector<size_t> >& coverage
 {
 	bool dbg = false;
 	//Now we will compute points_covered_by_landmarks. Firstly let us initialize all the structures:
-		
+
 	for ( size_t i = 0 ; i != coverage.size() ; ++i )
 	{
 		for ( size_t j = 0 ; j != coverage[i].size() ; ++j )
@@ -211,7 +206,7 @@ const std::vector< std::vector<size_t> >& coverage
 			points_covered_by_landmarks[ coverage[i][j]-1 ].push_back( i+1 );
 		}
 	}
-	
+
 	if (dbg)
 	{
 		#ifdef rcpp_code
@@ -221,7 +216,7 @@ const std::vector< std::vector<size_t> >& coverage
 			cerr << "points_covered_by_landmarks.size() : " << points_covered_by_landmarks.size() << endl;
 		#endif
 	}
-	
+
 }//internal_procedure_fill_points_covered_by_landmarks
 
 //
@@ -334,7 +329,7 @@ const std::vector< std::vector<size_t> > coverage
        if ( graph_incidence_matrix[i][j] != 0 )++number_of_edges;
     }
   }
-  
+
   if (dbg)
   {
 	  #ifdef rcpp_code
@@ -344,7 +339,7 @@ const std::vector< std::vector<size_t> > coverage
 		cerr << "Number of edges in the graph : " << number_of_edges << endl;
 	  #endif
   }
-  
+
 
   from = vect(number_of_edges);
   to = vect(number_of_edges);
@@ -378,7 +373,7 @@ const std::vector< std::vector<size_t> > coverage
 
 
 
-std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> > 
+std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> >
 BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon )
 {
 	int number_of_points = points.size();
@@ -389,8 +384,8 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 
 	//here we outsource computations of landmark points:
 	compute_landmarks< std::vector<double> >( points , coverage, landmarks , epsilon , number_of_points );
-	
-	
+
+
 	std::vector< std::vector< int > > points_covered_by_landmarks;
 	std::vector< int > numer_of_covered_points( landmarks.size() , 2 );
 	internal_procedure_fill_points_covered_by_landmarks< std::vector< int > >( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
@@ -409,7 +404,7 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 	std::vector<int> to;
 	std::vector<int> strength_of_edges;
 	internal_procedure_build_graph< std::vector<int> >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
-	
+
 	return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges );
 
 }//BallMapperCppInterfacePython
@@ -473,13 +468,13 @@ List BallMapperCppInterface( const DataFrame& points_df, const DataFrame& values
 
   if (dbg)
   {
-    
+
       Rcerr << "Number of points : " << number_of_points << endl;
       Rcerr << "values.size() : " << values.size() << endl;
-      
+
       Rcerr << "landmarks.size() : " << landmarks.size() << endl;
       Rcerr << "coverage.size() : " << coverage.size() << endl;
-      
+
       Rcerr << "Here are the landmarks: \n";
       for ( size_t i = 0 ; i != landmarks.size() ; ++i )
       {
@@ -601,7 +596,7 @@ void compute_landmarks_not_transposed_pts_group_action
           ++current_point;
       }
 
-      
+
       if ( dbg )
       {
           #ifdef rcpp_code
@@ -624,7 +619,7 @@ void compute_landmarks_not_transposed_pts_group_action
                       cerr <<  "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
                 #endif
            }
-           
+
 
            landmarks.push_back( orbit[ current_point ][i]-1 );
            for ( size_t j = 0 ; j != points.size() ; ++j )
@@ -1465,7 +1460,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
            }
            current_landmark++;
       }
-      
+
       if ( dbg )
       {
           #ifdef rcpp_code
