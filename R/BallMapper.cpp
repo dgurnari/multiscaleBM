@@ -373,7 +373,7 @@ const std::vector< std::vector<size_t> > coverage
 
 
 
-std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> >
+std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> , std::vector< int > >
 BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon )
 {
 	int number_of_points = points.size();
@@ -405,7 +405,7 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 	std::vector<int> strength_of_edges;
 	internal_procedure_build_graph< std::vector<int> >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
 
-	return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges );
+	return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges , numer_of_covered_points );
 
 }//BallMapperCppInterfacePython
 
