@@ -182,7 +182,7 @@ const std::vector< size_t >& landmarks ,
 const std::vector< std::vector<size_t> >& coverage
 )
 {
-	bool dbg = false;
+	bool dbg = true;
 	//Now we will compute points_covered_by_landmarks. Firstly let us initialize all the structures:
 
 	for ( size_t i = 0 ; i != coverage.size() ; ++i )
@@ -375,29 +375,47 @@ const std::vector< std::vector<size_t> > coverage
 
 
 
-//std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> , std::vector< int > >
 std::tuple< std::vector< int > , std::vector<std::pair< int, int> > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
 BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon )
 {
+  bool dbg = true;
+  if (dbg) cerr << "+++++++++BallMapperCppInterfacePython+++++++++\n";
 	int number_of_points = points.size();
+
+  if (dbg)
+  {
+  cerr << "Number of points : " << number_of_points << endl;
+  cerr << "values.size() : " << values.size() << endl;
+  }
 
 	std::vector< std::vector<size_t> > coverage( number_of_points );
 	std::vector< size_t > landmarks;
 	landmarks.reserve( (size_t)(0.2*number_of_points) );
 
 	//here we outsource computations of landmark points:
+  if (dbg) cerr << "Entering compute_landmarks.\n";
 	compute_landmarks< std::vector<double> >( points , coverage, landmarks , epsilon , number_of_points );
-
+  if (dbg)
+  {
+  cerr << "landmarks.size() : " << landmarks.size() << endl;
+    cerr << "Here are the landmarks: \n";
+    for ( size_t i = 0 ; i != landmarks.size() ; ++i )
+    {
+      cerr << landmarks[i] << " , ";
+    }
+    cerr << "coverage.size() : " << coverage.size() << endl;
+  }
 
 	std::vector< std::vector< int > > points_covered_by_landmarks;
 	std::vector< int > numer_of_covered_points( landmarks.size() , 2 );
+  if (dbg) cerr << "Entering internal_procedure_fill_points_covered_by_landmarks.\n";
 	internal_procedure_fill_points_covered_by_landmarks< std::vector< int > >( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
 
 	//now let us deal with the coloring of the vertices:
 	//change2
 	std::vector< double > coloring;
+  if (dbg) cerr << "Entering internal_procedure_fill_coloring.\n";
 	internal_procedure_fill_coloring< std::vector<double> >( coloring , points_covered_by_landmarks , values );
-
 
 
 	//Now let us create the graph and record the strength of each edge. To measure this, we will create the incidence matrix of the graph.
@@ -406,17 +424,19 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 	std::vector<int> from;
 	std::vector<int> to;
 	std::vector<int> strength_of_edges;
+  if (dbg) cerr << "Entering internal_procedure_build_graph.\n";
 	internal_procedure_build_graph< std::vector<int> >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
 
   // create the vector of edges
   std::vector<std::pair<int, int> > edges;
+  if (dbg) cerr << "creating vector of edges.\n";
   for (int i = 0; i < from.size(); i++)
   {
       edges.push_back(std::make_pair(from[i], to[i]));
   }
 
 
-	//return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges , numer_of_covered_points );
+	if (dbg) cerr << "+++++++++ THE END +++++++++\n\n";
 	return std::make_tuple( numer_of_covered_points , edges , strength_of_edges , points_covered_by_landmarks , landmarks , coloring , coverage );
 
 }//BallMapperCppInterfacePython
@@ -1357,12 +1377,55 @@ std::vector< std::vector< std::pair<unsigned , double > > > transpose_points_fro
 #endif
 
 
+std::vector< std::vector< std::pair<unsigned , double > > > dense_to_sparse_vector( const std::vector< std::vector<double> >& dense_points )
+{
+    std::vector< std::vector< std::pair<unsigned , double > > > sparse_points( dense_points.size() );
+
+    for ( int i = 0 ; i != dense_points.size() ; ++i )
+    {
+        std::vector< std::pair<unsigned , double > > pt;
+        pt.reserve( dense_points[i].size() );
+        for ( size_t j = 0 ; j != dense_points[i].size() ; ++j )
+        {
+        	if ( dense_points[j][i] != 0 )
+        	{
+      		   pt.push_back( std::make_pair( j , dense_points[i][j] ) );
+      		}
+        }
+        sparse_points[i] = pt;
+    }
+    return sparse_points;
+}
+
+
+
 inline double compute_distance_standard_points_sparse_points
   ( const std::vector< std::pair<unsigned,double> >& pt1 , const std::vector< std::pair<unsigned,double> >& pt2 , double p = 2 )
 {
   double result = 0;
   size_t pt1_it = 0;
   size_t pt2_it = 0;
+
+  bool dbg = false;
+  if ( dbg )
+  {
+    #ifdef rcpp_code
+        Rcerr << "result : " << pow(result,1/p) << std::endl;
+    #endif
+    #ifndef rcpp_code
+        cerr << pt1.size() << " " << pt2.size() << std::endl;
+    #endif
+
+    for (size_t i=0; i < pt1.size(); i++) {
+      cerr << pt1[i].first << " " <<  pt1[i].second ;
+    }
+    cerr << std::endl;
+
+    for (size_t i=0; i < pt2.size(); i++) {
+      cerr << pt2[i].first << " " <<  pt2[i].second ;
+    }
+    cerr << std::endl;
+  }
 
   while ( ( pt1_it < pt1.size() ) && ( pt2_it < pt2.size() ) )
   {
@@ -1415,7 +1478,8 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
                                            double epsilon
                                          )
 {
-   bool dbg = false;
+   bool dbg = true;
+   bool dbg_pedantic = false;
 
    //here we outsource computations of landmark points:
   size_t current_point = 0;
@@ -1438,7 +1502,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
           ++current_point;
       }
 
-      if ( dbg )
+      if ( dbg_pedantic )
       {
           #ifdef rcpp_code
                 Rcerr << "Current point : " << current_point << std::endl;
@@ -1451,18 +1515,18 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
       if ( current_point == points.size() )break;
       for ( size_t i = 0 ; i != orbit[ current_point ].size() ; ++i )
       {
-           if ( dbg )
+           if ( dbg_pedantic )
            {
                 #ifdef rcpp_code
-                      Rcerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                      Rcerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i]-1 << endl;
                 #endif
                 #ifndef rcpp_code
-                      cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << endl;
+                      cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i]-1 << endl;
                 #endif
            }
 
 
-           landmarks.push_back( orbit[ current_point ][i]-1 );
+           landmarks.push_back( orbit[ current_point ][i] );
            for ( size_t j = 0 ; j != points.size() ; ++j )
            {
               if ( compute_distance_standard_points_sparse_points( points[j] , points[ orbit[ current_point ][i]-1 ] ) <= epsilon )
@@ -1473,7 +1537,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
            current_landmark++;
       }
 
-      if ( dbg )
+      if ( dbg_pedantic )
       {
           #ifdef rcpp_code
                   Rcerr << "Out of the internal while loop. \n";
@@ -1594,6 +1658,81 @@ List SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentation( const D
 return 1;
 }
 #endif
+
+
+
+std::tuple< std::vector< int > ,  std::vector<std::pair< int, int> > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
+SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython( const std::vector< std::vector<double> >& dense_points , const std::vector<double>& values ,
+double epsilon , const std::vector< std::vector<int> > orbit )
+{
+  bool dbg = true;
+  if (dbg) cerr << "+++++++++SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython+++++++++\n\n";
+  if ( dense_points.size() == 0 )
+  {
+    cerr << "No points in the BallMapperCpp procedure, the program will now terminate";
+    throw "No points in the BallMapperCpp procedure, the program will now terminate";
+  }
+
+  std::vector< std::vector< std::pair<unsigned , double > > > points = dense_to_sparse_vector(dense_points);
+
+  int number_of_points = points.size();
+  if (dbg)
+  {
+	cerr << "Number of points : " << number_of_points << endl;
+	cerr << "orbit.size() : " << orbit.size() << endl;
+	cerr << "values.size() : " << values.size() << endl;
+  }
+
+  std::vector< std::vector<size_t> > coverage( number_of_points );
+  std::vector< size_t > landmarks;
+  landmarks.reserve( (size_t)(0.2*number_of_points) );
+
+
+  if (dbg) cerr << "Entering compute_landmarks_not_transposed_pts_group_action.\n";
+  compute_landmarks_not_transposed_pts_group_action_sparse_points( coverage , landmarks ,  points ,  orbit , epsilon );
+
+  if (dbg)
+  {
+	cerr << "landmarks.size() : " << landmarks.size() << endl;
+    cerr << "Here are the landmarks: \n";
+    for ( size_t i = 0 ; i != landmarks.size() ; ++i )
+    {
+      cerr << landmarks[i] << " , ";
+    }
+    cerr << "coverage.size() : " << coverage.size() << endl;
+  }
+
+
+  std::vector< int > numer_of_covered_points;
+  std::vector< std::vector< int > > points_covered_by_landmarks;
+  if (dbg) cerr << "Entering internal_procedure_fill_points_covered_by_landmarks.\n";
+	internal_procedure_fill_points_covered_by_landmarks< std::vector< int > >( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
+
+  std::vector< double > coloring;
+  if (dbg) cerr << "Entering internal_procedure_fill_coloring.\n";
+  internal_procedure_fill_coloring< std::vector< double > >( coloring , points_covered_by_landmarks , values );
+
+
+  std::vector< std::vector< int > > graph_incidence_matrix;
+  std::vector< int > from;
+  std::vector< int > to;
+  std::vector< int > strength_of_edges;
+  if (dbg) cerr << "Entering internal_procedure_build_graph.\n";
+  internal_procedure_build_graph< std::vector< int > >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
+
+  // create the vector of edges
+  std::vector<std::pair<int, int> > edges;
+  if (dbg) cerr << "creating list of edges.\n";
+  for (int i = 0; i < from.size(); i++)
+  {
+      edges.push_back(std::make_pair(from[i], to[i]));
+  }
+
+  if (dbg) cerr << "+++++++++ THE END +++++++++\n\n";
+  return std::make_tuple(numer_of_covered_points , edges, strength_of_edges, points_covered_by_landmarks, landmarks, coloring, coverage);
+}//SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython
+
+
 
 
 

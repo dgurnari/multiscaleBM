@@ -30,6 +30,11 @@ PYBIND11_MODULE(_ballmapperinterfaces, m) {
               Some other explanation about the add function.
     )pbdoc");
 
+    m.def("EquivariantBallMapperCppInterfacePython", &SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython, R"pbdoc(
+              Some other explanation about the add function.
+    )pbdoc");
+
+
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
 #else
