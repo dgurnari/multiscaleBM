@@ -18,7 +18,7 @@ __version__ = "0.0.1"
 #   reproducible builds (https://github.com/pybind/ballmapper/pull/53)
 
 ext_modules = [
-    Pybind11Extension("ballmapper",
+    Pybind11Extension("ballmapper._ballmapperinterfaces",
         ["src/main.cpp"],
         # Example: passing in the version to the compiled code
         define_macros = [('VERSION_INFO', __version__)],
@@ -28,13 +28,14 @@ ext_modules = [
 setup(
     name="ballmapper",
     version=__version__,
-    author="Sylvain Corlay",
-    author_email="sylvain.corlay@gmail.com",
-    url="https://github.com/pybind/ballmapper",
-    description="A test project using pybind11",
+    author="",
+    author_email="",
+    url="",
+    description="",
     long_description="",
     ext_modules=ext_modules,
     extras_require={"test": "pytest"},
+    packages=['ballmapper'],
     # Currently, build_ext only provides an optional "highest supported C++
     # level" feature, but in the future it may provide more features.
     cmdclass={"build_ext": build_ext},

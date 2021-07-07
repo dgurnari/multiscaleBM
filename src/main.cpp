@@ -12,7 +12,7 @@ int add(int i, int j) {
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(ballmapper, m) {
+PYBIND11_MODULE(_ballmapperinterfaces, m) {
     m.doc() = R"pbdoc(
         Pybind11 example plugin
         -----------------------
@@ -26,7 +26,7 @@ PYBIND11_MODULE(ballmapper, m) {
            subtract
     )pbdoc";
 
-    m.def("ballmapper", &BallMapperCppInterfacePython, R"pbdoc(
+    m.def("BallMapperCppInterfacePython", &BallMapperCppInterfacePython, R"pbdoc(
               Some other explanation about the add function.
     )pbdoc");
 
