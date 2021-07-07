@@ -13,21 +13,20 @@
 
 using namespace std;
 
+
+
 /**
 //For standard, not symmetric data:
 library(Rcpp)
 sourceCpp('BallMapper.cpp')
-
 pts <- as.data.frame( read.csv('../circle') )
 values = pts[,1]
-
 BallMapperCpp <- function( points , values , epsilon )
 {
   output <- SimplifiedBallMapperCppInterface( points , values , epsilon )
   colnames(output$vertices) = c('id','size')
   return_list <- output
 }#BallMapperCpp
-
 BallMapperCpp( pts,values,0.3 )
 **/
 
@@ -36,10 +35,13 @@ inline double compute_distance
   ( const std::vector< point >& pts , size_t f , size_t s ,  double p = 2 )
 {
   double result = 0;
-  for ( size_t i = 0 ; i != pts.size() ; ++i )
+  bool dbg = false;
+
+  for ( size_t i = 0 ; i != pts[f].size() ; ++i )
   {
      result += pow( ( pts[f][i]-pts[s][i] ) , p );
   }
+
   return pow(result,1/p);
 }//Euclidean_distance
 //
@@ -373,8 +375,7 @@ const std::vector< std::vector<size_t> > coverage
 
 
 
-//std::tuple< std::vector< size_t > , std::vector< std::vector< int > > , std::vector< double > , std::vector<int> , std::vector<int> ,std::vector<int> , std::vector< int > >
-std::tuple< std::vector< int > , std::pair< std::vector< int > , std::vector< int > > , std::vector<int> , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
+std::tuple< std::vector< int > , std::vector<std::pair< int, int> > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
 BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon )
 {
 	int number_of_points = points.size();
@@ -405,10 +406,17 @@ BallMapperCppInterfacePython( const std::vector< std::vector<double> >& points ,
 	std::vector<int> to;
 	std::vector<int> strength_of_edges;
 	internal_procedure_build_graph< std::vector<int> >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
-	
- 
+
+  // create the vector of edges
+  std::vector<std::pair<int, int> > edges;
+  for (int i = 0; i < from.size(); i++)
+  {
+      edges.push_back(std::make_pair(from[i], to[i]));
+  }
+
+
 	//return std::make_tuple( landmarks , points_covered_by_landmarks , coloring , from , to , strength_of_edges , numer_of_covered_points );
-	return std::make_tuple( numer_of_covered_points , std::make_pair(from,to) , strength_of_edges , points_covered_by_landmarks , landmarks , coloring , coverage );
+	return std::make_tuple( numer_of_covered_points , edges , strength_of_edges , points_covered_by_landmarks , landmarks , coloring , coverage );
 
 }//BallMapperCppInterfacePython
 
@@ -1401,7 +1409,7 @@ inline double compute_distance_standard_points_sparse_points
 void compute_landmarks_not_transposed_pts_group_action_sparse_points
                                          ( std::vector< std::vector<size_t> >& coverage ,
                                            std::vector< size_t > & landmarks ,
-                                           const std::vector< std::vector< std::pair<unsigned,double> > >& points ,
+                                           const std::vector< std::vector< std::pair<unsigned,double> > >& points , // TO BE MODIFIED
                                            const std::vector< std::vector<int> >& orbit ,
                                            double epsilon
                                          )
@@ -1587,14 +1595,13 @@ return 1;
 #endif
 
 
+// this is the original input
+// std::tuple< std::vector< int > , std::vector< int > , std::vector< int > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
+// SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython( const std::vector< std::vector< std::pair<unsigned,double> > >& points , const std::vector<double>& values ,
+// double epsilon , const std::vector< std::vector<int> > orbit )
 
-
-
-
-
-std::tuple< std::vector< int > , std::vector< int > , std::vector< int > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > > 
-SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython( const std::vector< std::vector< std::pair<unsigned,double> > >& points , const std::vector<double>& values , 
-double epsilon , const std::vector< std::vector<int> > orbit )
+std::tuple< std::vector< int > , std::vector<std::pair< int, int> > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
+SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython( const std::vector< std::vector<double> >& points , const std::vector<double>& values , double epsilon, const std::vector< std::vector<int> > orbit )
 {
   bool dbg = false;
   if ( points.size() == 0 )
@@ -1621,7 +1628,7 @@ double epsilon , const std::vector< std::vector<int> > orbit )
 
   if (dbg)
   {
-	cerr << "landmarks.size() : " << landmarks.size() << endl;  
+	cerr << "landmarks.size() : " << landmarks.size() << endl;
     cerr << "Here are the landmarks: \n";
     for ( size_t i = 0 ; i != landmarks.size() ; ++i )
     {
@@ -1629,8 +1636,8 @@ double epsilon , const std::vector< std::vector<int> > orbit )
     }
     cerr << "coverage.size() : " << coverage.size() << endl;
   }
-  
-  
+
+
   std::vector< int > numer_of_covered_points;
   std::vector< std::vector< int > > points_covered_by_landmarks;
   internal_procedure_fill_points_covered_by_landmarks< std::vector< int > >( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
@@ -1644,12 +1651,16 @@ double epsilon , const std::vector< std::vector<int> > orbit )
   std::vector< int > to;
   std::vector< int > strength_of_edges;
   internal_procedure_build_graph< std::vector< int > >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
-  
-  return std::make_tuple(numer_of_covered_points , from,to, strength_of_edges, points_covered_by_landmarks, landmarks, coloring, coverage);
+
+  // create the vector of edges
+  std::vector<std::pair<int, int> > edges;
+  for (int i = 0; i < from.size(); i++)
+  {
+      edges.push_back(std::make_pair(from[i], to[i]));
+  }
+
+  return std::make_tuple(numer_of_covered_points , edges, strength_of_edges, points_covered_by_landmarks, landmarks, coloring, coverage);
 }//SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython
-
-
-
 
 
 
