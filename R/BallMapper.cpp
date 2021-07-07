@@ -38,7 +38,7 @@ inline double compute_distance
   double result = 0;
   for ( size_t i = 0 ; i != pts.size() ; ++i )
   {
-     result += pow( ( pts[f][i]-pts[f][i] ) , p );
+     result += pow( ( pts[f][i]-pts[s][i] ) , p );
   }
   return pow(result,1/p);
 }//Euclidean_distance
