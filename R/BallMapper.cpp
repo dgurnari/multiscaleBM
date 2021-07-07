@@ -1590,6 +1590,71 @@ return 1;
 
 
 
+
+
+std::tuple< std::vector< int > , std::vector< int > , std::vector< int > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > > 
+SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython( const std::vector< std::vector< std::pair<unsigned,double> > >& points , const std::vector<double>& values , 
+double epsilon , const std::vector< std::vector<int> > orbit )
+{
+  bool dbg = false;
+  if ( points.size() == 0 )
+  {
+    cerr << "No points in the BallMapperCpp procedure, the program will now terminate";
+    throw "No points in the BallMapperCpp procedure, the program will now terminate";
+  }
+
+  int number_of_points = points.size();
+  if (dbg)
+  {
+	cerr << "Number of points : " << number_of_points << endl;
+	cerr << "orbit.size() : " << orbit.size() << endl;
+	cerr << "values.size() : " << values.size() << endl;
+  }
+
+  std::vector< std::vector<size_t> > coverage( number_of_points );
+  std::vector< size_t > landmarks;
+  landmarks.reserve( (size_t)(0.2*number_of_points) );
+
+
+  if (dbg) cerr << "Entering compute_landmarks_not_transposed_pts_group_action.\n";
+  compute_landmarks_not_transposed_pts_group_action_sparse_points( coverage , landmarks ,  points ,  orbit , epsilon );
+
+  if (dbg)
+  {
+	cerr << "landmarks.size() : " << landmarks.size() << endl;  
+    cerr << "Here are the landmarks: \n";
+    for ( size_t i = 0 ; i != landmarks.size() ; ++i )
+    {
+      cerr << landmarks[i] << " , ";
+    }
+    cerr << "coverage.size() : " << coverage.size() << endl;
+  }
+  
+  
+  std::vector< int > numer_of_covered_points;
+  std::vector< std::vector< int > > points_covered_by_landmarks;
+  internal_procedure_fill_points_covered_by_landmarks< std::vector< int > >( numer_of_covered_points , points_covered_by_landmarks ,  landmarks , coverage );
+
+  std::vector< double > coloring;
+  internal_procedure_fill_coloring< std::vector< double > >( coloring , points_covered_by_landmarks , values );
+
+
+  std::vector< std::vector< int > > graph_incidence_matrix;
+  std::vector< int > from;
+  std::vector< int > to;
+  std::vector< int > strength_of_edges;
+  internal_procedure_build_graph< std::vector< int > >( graph_incidence_matrix, from, to, strength_of_edges, landmarks, coverage );
+  
+  return std::make_tuple(numer_of_covered_points , from,to, strength_of_edges, points_covered_by_landmarks, landmarks, coloring, coverage);
+}//SimplifiedBallMapperCppInterfaceGroupActionAndSparseRepresentationPython
+
+
+
+
+
+
+
+
 /**
  library(Rcpp)
  sourceCpp('BallMapper.cpp')
