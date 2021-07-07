@@ -13,8 +13,9 @@ class BallMapper():
     """BallMapper class
     """
     def __init__(self, points, values, epsilon):
-        bm_output = BallMapperCppInterfacePython(points,
-                                                 values,
-                                                 epsilon)
-
-        self.edges = bm_output[1]
+        (self.numer_of_covered_points , self.edges ,
+        self.strength_of_edges , self.points_covered_by_landmarks ,
+        self.landmarks , self.coloring ,
+        self.coverage ) = BallMapperCppInterfacePython(points,
+                                                       values,
+                                                       epsilon)
