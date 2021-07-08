@@ -354,20 +354,19 @@ inline double compute_distance_standard_points_sparse_points
   bool dbg = false;
   if ( dbg )
   {
-    #ifdef rcpp_code
-        Rstd::cerr << "result : " << pow(result,1/p) << std::endl;
-    #endif
     #ifndef rcpp_code
         std::cerr << pt1.size() << " " << pt2.size() << std::endl;
     #endif
 
+    std::cerr << "pt1: " ;
     for (size_t i=0; i < pt1.size(); i++) {
-      std::cerr << pt1[i].first << " " <<  pt1[i].second ;
+      std::cerr << "(" << pt1[i].first << " " <<  pt1[i].second << "), " ;
     }
     std::cerr << std::endl;
 
+    std::cerr << "pt2: " ;
     for (size_t i=0; i < pt2.size(); i++) {
-      std::cerr << pt2[i].first << " " <<  pt2[i].second ;
+      std::cerr << "(" << pt2[i].first << " " <<  pt2[i].second << "), " ;
     }
     std::cerr << std::endl;
   }
@@ -410,6 +409,12 @@ inline double compute_distance_standard_points_sparse_points
 	pt2_it++;
   }
 
+
+  if ( dbg )
+  {
+    std::cerr << "distance: " << pow(result,1/p) << std::endl <<  std::endl;
+  }
+
   return pow(result,1/p);
 }//compute_distance_standard_points_sparse_points
 
@@ -423,8 +428,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
                                            double epsilon
                                          )
 {
-   bool dbg = true;
-   bool dbg_pedantic = true;
+   bool dbg = false;
 
    //here we outsource computations of landmark points:
   size_t current_point = 0;
@@ -432,12 +436,7 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
 
   if ( dbg )
   {
-    #ifdef rcpp_code
-        Rstd::cerr << "orbit.size() : " << orbit.size() << std::endl;
-    #endif
-    #ifndef rcpp_code
-        std::cerr << "orbit.size() : " << orbit.size() << std::endl;
-    #endif
+     std::cerr << "orbit.size() : " << orbit.size() << std::endl;
   }
 
   while ( true )
@@ -447,52 +446,26 @@ void compute_landmarks_not_transposed_pts_group_action_sparse_points
           ++current_point;
       }
 
-      if ( dbg_pedantic )
-      {
-          #ifdef rcpp_code
-                Rstd::cerr << "Current point : " << current_point << std::endl;
-          #endif
-          #ifndef rcpp_code
-                std::cerr << "Current point : " << current_point << std::endl;
-          #endif
-      }
+      if ( dbg ) std::cerr << "Current point : " << current_point << std::endl;
 
       if ( current_point == points.size() )break;
       for ( size_t i = 0 ; i != orbit[ current_point ].size() ; ++i )
       {
-           if ( dbg_pedantic )
-           {
-                #ifdef rcpp_code
-                      Rstd::cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i]-1 << std::endl;
-                #endif
-                #ifndef rcpp_code
-                      std::cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i]-1 << std::endl;
-                #endif
-           }
-
+           if ( dbg ) std::cerr << "orbit["<<current_point<<"][" << i << "] : " << orbit[ current_point ][i] << std::endl;
 
            landmarks.push_back( orbit[ current_point ][i] );
            for ( size_t j = 0 ; j != points.size() ; ++j )
            {
               if ( compute_distance_standard_points_sparse_points( points[j] , points[ orbit[ current_point ][i]-1 ] ) <= epsilon )
               {
-                  coverage[j].push_back( current_landmark+1 );
+                  coverage[j].push_back( current_landmark+1);
               }
            }
            current_landmark++;
       }
-
-      if ( dbg_pedantic )
-      {
-          #ifdef rcpp_code
-                  Rstd::cerr << "Out of the internal while loop. \n";
-          #endif
-          #ifndef rcpp_code
-                  std::cerr << "Out of the internal while loop. \n";
-          #endif
-      }
+      if ( dbg ) std::cerr << "Out of the internal while loop. \n";
   }
-}//compute_landmarks_not_transposed_pts_group_action_sparse_points
+}
 
 
 std::tuple< std::vector< int > , std::vector<std::pair< int, int> > , std::vector< int > , std::vector< std::vector< int > > , std::vector< size_t > , std::vector< double > , std::vector< std::vector<size_t> > >
