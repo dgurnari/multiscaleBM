@@ -31,3 +31,5 @@ class BallMapper():
                                                                       values,
                                                                       epsilon,
                                                                       orbit)
+        else:
+            raise ValueError('Unknown interface')
